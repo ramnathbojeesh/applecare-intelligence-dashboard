@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AppleCare — Global intelligence dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+ --mw-teal:#28BBBB;--mw-teal-dark:#1C7070;--mw-teal-medium:#00A7A5;
+ --mw-teal-t1:#A3DFDF;--mw-teal-t2:#C0EBEB;--mw-teal-t3:#E1EFF0;
+ --mw-white:#FFFFFF;--mw-black:#1A1A1A;--mw-gray:#F0F4F4;
+ --mw-orange:#FF6221;--mw-purple:#B627A1;--mw-yellow:#FFCC01;
+ --fg-muted:#555;--fg-subtle:#8A9494;--border:#D7E1E1;--divider:#E8EDED;
+ --danger:#C0392B;--success:#1C7070;
+ --r-md:8px;--r-lg:12px;--r-pill:999px;
+ --shadow-sm:0 2px 6px rgba(26,26,26,.06);--shadow-md:0 6px 18px rgba(26,26,26,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Poppins',system-ui,Arial,sans-serif;color:var(--mw-black);background:var(--mw-gray);font-size:14px;line-height:1.45}
+.hero{background:var(--mw-teal-dark);color:#fff;padding:36px 40px 28px}
+.hero .brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.hero .logo{font-weight:900;font-size:20px;letter-spacing:-.01em}
+.hero .logo span{color:var(--mw-teal-t1)}
+.hero h1{font-size:clamp(26px,3.4vw,40px);font-weight:700;margin:0 0 6px;letter-spacing:-.015em;line-height:1.05}
+.hero p{margin:0;color:#CFE8E8;max-width:980px}
+.hero .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.hero .meta span{background:rgba(255,255,255,.12);border-radius:var(--r-pill);padding:4px 12px;font-size:12px}
+.tabs{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;padding:0 24px;box-shadow:var(--shadow-sm)}
+.tab-btn{border:none;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--fg-muted);padding:14px 16px;cursor:pointer;border-bottom:3px solid transparent}
+.tab-btn:hover{color:var(--mw-teal-dark)}
+.tab-btn.active{color:var(--mw-teal-dark);font-weight:600;border-bottom-color:var(--mw-teal)}
+.page{display:none;padding:28px 40px 48px;max-width:1440px;margin:0 auto}
+.page.active{display:block}
+h2{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:6px 0 4px}
+h3{font-size:16px;font-weight:600;margin:0 0 10px}
+.sub{color:var(--fg-muted);margin:0 0 20px;max-width:960px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:1000px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+@media(max-width:640px){.g4,.g3{grid-template-columns:1fr}.page{padding:20px}}
+.card{background:#fff;border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow-sm)}
+.kpi{background:var(--mw-teal-t3);border-radius:var(--r-lg);padding:18px 20px}
+.kpi .v{font-size:26px;font-weight:700;color:var(--mw-teal-dark);letter-spacing:-.01em}
+.kpi .l{font-size:12px;color:var(--fg-muted);margin-top:2px}
+.kpi .s{font-size:11px;color:var(--fg-subtle);margin-top:4px}
+.chartbox{position:relative;height:320px}
+.chartbox.tall{height:380px}.chartbox.short{height:250px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--mw-teal-dark);border-bottom:2px solid var(--mw-teal-t2);padding:8px 10px;cursor:pointer;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--divider);vertical-align:top}
+tr:hover td{background:var(--mw-teal-t3)}
+.pill{display:inline-block;border-radius:var(--r-pill);padding:2px 10px;font-size:11px;font-weight:600}
+.pill.emerging{background:#E6F4ED;color:#1a7a4a}.pill.mainstreaming{background:var(--mw-teal-t2);color:var(--mw-teal-dark)}
+.pill.established{background:#EEF2F2;color:#555}.pill.declining{background:#FDE8EA;color:var(--danger)}
+.bar{height:8px;background:var(--mw-teal-t3);border-radius:4px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--mw-teal);border-radius:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.chip{border:1px solid var(--border);background:#fff;border-radius:var(--r-pill);padding:5px 14px;font-size:12.5px;font-family:inherit;cursor:pointer;color:var(--fg-muted)}
+.chip.on{background:var(--mw-teal);border-color:var(--mw-teal);color:#fff;font-weight:600}
+.up{color:#1a7a4a;font-weight:600}.down{color:var(--danger);font-weight:600}
+.note{font-size:11.5px;color:var(--fg-subtle);margin-top:10px}
+.modelled{display:inline-block;background:#FFF3D6;color:#8a6400;border-radius:var(--r-pill);padding:1px 8px;font-size:10.5px;font-weight:600;margin-left:6px;vertical-align:middle}
+.postcard{border:1px solid var(--divider);border-left:3px solid var(--mw-teal);border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;background:#fff}
+.postcard .meta{font-size:11.5px;color:var(--fg-subtle);margin-bottom:4px}
+.postcard .t{font-weight:600;font-size:13px;margin-bottom:4px}
+.postcard p{margin:0;font-size:12.5px;color:var(--fg-muted)}
+.postcard a{color:var(--mw-teal-dark);text-decoration:none;font-size:11.5px}
+.creator{border:1px solid var(--divider);border-radius:var(--r-lg);padding:14px 16px;background:#fff}
+.creator .n{font-weight:600}.creator .h{font-size:12px;color:var(--mw-teal-dark)}
+.creator .stats{display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--fg-muted)}
+.creator .stats b{display:block;font-size:15px;color:var(--mw-black)}
+.tag{display:inline-block;background:var(--mw-teal-t3);color:var(--mw-teal-dark);border-radius:var(--r-pill);padding:2px 9px;font-size:10.5px;font-weight:600;margin:6px 4px 0 0}
+.sec{margin-top:28px}
+.quad{position:relative;height:430px;background:#fff;border-radius:var(--r-lg)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin:14px 0}
+.flow .st{flex:1;min-width:160px;background:#fff;border-top:3px solid var(--mw-teal);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--shadow-sm)}
+.flow .st b{display:block;font-size:12.5px;color:var(--mw-teal-dark);margin-bottom:4px}
+.flow .st span{font-size:11.5px;color:var(--fg-muted)}
+.gov{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:1000px){.gov{grid-template-columns:repeat(2,1fr)}}
+.gov .g{background:#fff;border-radius:var(--r-md);padding:12px 14px;font-size:12px;color:var(--fg-muted)}
+.gov .g b{display:block;color:var(--mw-teal-dark);margin-bottom:4px;font-size:12.5px}
+footer{background:var(--mw-black);color:#bbb;padding:22px 40px;font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer b{color:#fff}
+.heat td{text-align:center;font-weight:600;border-radius:4px}
+.legend{font-size:11.5px;color:var(--fg-subtle);display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.select{font-family:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:#fff;color:var(--mw-black)}
+.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media(max-width:1000px){.split{grid-template-columns:1fr}}
+.webmap{width:100%;height:auto}
+</style>
+</head>
+<body>
+<div class="hero">
+ <div class="brand">
+  <div class="logo">meltwater<span>.</span></div>
+  <div style="font-size:12px;color:#CFE8E8">Trend &amp; tribe intelligence · Jedis methodology</div>
+ </div>
+ <h1>AppleCare — global intelligence dashboard</h1>
+ <p>Search demand (MyTelescope) overlaid on social listening (Meltwater), fused with Meta audience intelligence (Audiense · Soprism), X tribe segmentation (Audiense Insights) and creator intelligence (Klear). One repeatable loop: trend → tribe → creator → impact.</p>
+ <div class="meta">
+  <span>Worldwide</span><span>Search window: Jun 2022 – May 2026</span><span>Listening window: Jun 2025 – May 2026</span><span>Audience reports: Jul 2026</span><span>Prepared 3 Jul 2026</span>
+ </div>
+</div>
+
+<nav class="tabs" id="tabs">
+ <button class="tab-btn active" data-t="overview">Overview</button>
+ <button class="tab-btn" data-t="listening">Social listening</button>
+ <button class="tab-btn" data-t="search">Search demand</button>
+ <button class="tab-btn" data-t="overlay">Search × social overlay</button>
+ <button class="tab-btn" data-t="trends">Trends &amp; CTF</button>
+ <button class="tab-btn" data-t="tribes">Audience &amp; tribes</button>
+ <button class="tab-btn" data-t="creators">Influencers</button>
+ <button class="tab-btn" data-t="actions">Actions &amp; governance</button>
+</nav>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="page active" id="p-overview">
+ <h2>Executive readout</h2>
+ <p class="sub">Four data systems, one picture: demand is shifting from "buy the plan" to "prove the plan" — repair, AI support and bundled coverage are the growth stories, and the conversation that decides them lives on Reddit.</p>
+ <div class="grid g4">
+  <div class="kpi"><div class="v">592.9M</div><div class="l">AppleCare topic searches, 48 months</div><div class="s">75.3% share of the Apple support search universe (MyTelescope)</div></div>
+  <div class="kpi"><div class="v">90.6K</div><div class="l">AppleCare coverage mentions, 12 months</div><div class="s">Meltwater listening universe · Reddit-led</div></div>
+  <div class="kpi"><div class="v">62.2M</div><div class="l">Global Meta audience, Apple products</div><div class="s">Soprism · top 2% of 3.18B benchmark</div></div>
+  <div class="kpi"><div class="v">13</div><div class="l">Audience tribes on X</div><div class="s">Audiense Insights · 250K @AppleSupport followers</div></div>
+ </div>
+
+ <div class="sec grid g3">
+  <div class="card"><h3>Which trend is real?</h3><p style="font-size:12.5px;color:var(--fg-muted)">AI support (Siri / Apple Intelligence) is the fastest riser (+87% trend, +106% future index — TPV 86). iPhone repair &amp; longevity is the biggest durable riser (+40%, 26.5M searches). Software/updates and accessories are declining.</p></div>
+  <div class="card"><h3>Which tribe owns it?</h3><p style="font-size:12.5px;color:var(--fg-muted)">Tech Innovators own the AI-support conversation; Globally Mobile Expats (2.92x "away from hometown") are the theft &amp; loss / AppleCare One tribe; Indian Cricket is the highest-growth iPhone attach market; Apple Fans amplify everything.</p></div>
+  <div class="card"><h3>Who carries it?</h3><p style="font-size:12.5px;color:var(--fg-muted)">Four creator communities propagate the conversation — mega reviewers set verdicts, Apple-ecosystem specialists explain coverage, tips creators reach everyday owners, repair-DIY micros own "worth it?" moments at street level.</p></div>
+ </div>
+
+ <div class="sec">
+  <h3>The five-stage loop</h3>
+  <div class="flow">
+   <div class="st"><b>1 · Trend discovery</b><span>Black Swan TPV + Mintel lifecycle + Tastewise velocity on 15 MyTelescope topics</span></div>
+   <div class="st"><b>2 · Validation &amp; sizing</b><span>Mintel drivers + Euromonitor megatrends + search volume sizing</span></div>
+   <div class="st"><b>3 · Audience tribing</b><span>Audiense 13 tribes + Soprism 62.2M Meta audience, opportunity-scored</span></div>
+   <div class="st"><b>4 · Creator mapping</b><span>Klear communities matched to subtribes and trends</span></div>
+   <div class="st"><b>5 · Impact &amp; feedback</b><span>Addressable scaling model 5 → 100 creators; re-run as signals shift</span></div>
+  </div>
+ </div>
+
+ <div class="sec split">
+  <div class="card">
+   <h3>Convergence check — a trend is real when multiple lenses agree</h3>
+   <div style="overflow-x:auto"><table id="convTable"></table></div>
+   <div class="legend"><span><i style="background:var(--mw-teal)"></i>Strong signal</span><span><i style="background:var(--mw-teal-t1)"></i>Partial</span><span><i style="background:#eee"></i>Weak / none</span></div>
+  </div>
+  <div class="card">
+   <h3>Methodology stack</h3>
+   <table style="font-size:12.5px">
+    <tr><td><b>Black Swan</b></td><td>TPV — size + growth + forecast, one comparable rank</td></tr>
+    <tr><td><b>Tastewise</b></td><td>Velocity (trend change) + relevance (share of search)</td></tr>
+    <tr><td><b>Mintel</b></td><td>Seven trend drivers + lifecycle staging</td></tr>
+    <tr><td><b>Euromonitor</b></td><td>Megatrend durability + directional sizing</td></tr>
+    <tr><td><b>YouGov</b></td><td>Demand-funnel proxy from search journey stages</td></tr>
+    <tr><td><b>Meltwater tribes · Soprism · Klear</b></td><td>Tribing, opportunity scores, creator intelligence</td></tr>
+   </table>
+   <div class="note">All scores are modelled estimates on stated formulas (methodology_models.md) — decision support, not decision making.</div>
+  </div>
+ </div>
+</section>
+
+<!-- ============ LISTENING ============ -->
+<section class="page" id="p-listening">
+ <h2>Social listening — Meltwater</h2>
+ <p class="sub">AppleCare / coverage conversation across news, social, Reddit and forums, Jun 2025 – May 2026. The decision conversation is Reddit-first: users seek proof of value before buying, and vent when coverage rules surprise them.</p>
+ <div class="grid g4">
+  <div class="kpi"><div class="v">90,601</div><div class="l">Coverage-topic mentions, 12 months</div></div>
+  <div class="kpi"><div class="v">Reddit 52.6%</div><div class="l">Share of strict AppleCare+coverage docs</div><div class="s">26.0K of 49.5K</div></div>
+  <div class="kpi"><div class="v">20% / 60% / 20%</div><div class="l">Positive / neutral / negative split</div><div class="s">45.2K classified docs</div></div>
+  <div class="kpi"><div class="v">72%</div><div class="l">of negative issue mentions sit on Reddit</div><div class="s">3,865 of 5,368 · risk channel #1</div></div>
+ </div>
+ <div class="sec split">
+  <div class="card"><h3>Monthly conversation volume</h3><div class="chartbox"><canvas id="cListenVol"></canvas></div><div class="note">Peaks: Jul 2025 (AppleCare One launch), Sep–Oct 2025 (iPhone 17 launch + fragility debate), Mar 2026 (M5 MacBook Pro cycle).</div></div>
+  <div class="card"><h3>Platform mix</h3><div class="chartbox"><canvas id="cPlatform"></canvas></div></div>
+ </div>
+ <div class="sec split">
+  <div class="card">
+   <h3>What the conversation is about</h3>
+   <table style="font-size:12.5px">
+    <tr><td><b>Validation before purchase</b></td><td>"Is AppleCare+ worth it?" threads on every device subreddit — buyers hunt for repair-cost proof points before attach.</td></tr>
+    <tr><td><b>Fragility → attach moments</b></td><td>iPhone 17 dent/drop posts convert directly into AppleCare+ debates within the first weeks of ownership.</td></tr>
+    <tr><td><b>Coverage-rule surprises</b></td><td>90-day windows, damage-before-enrolment, battery thresholds and replacement-vs-repair decisions drive the sharpest negativity.</td></tr>
+    <tr><td><b>AppleCare One economics</b></td><td>$20/mo for 3 devices reframed the value debate; strongest positive spike of the year.</td></tr>
+    <tr><td><b>Channel mis-selling</b></td><td>Market-level friction (e.g. resellers denying built-in warranty to push plans) creates local trust risks.</td></tr>
+   </table>
+  </div>
+  <div class="card"><h3>Sentiment</h3><div class="chartbox short"><canvas id="cSent"></canvas></div><div class="note">Negativity concentrates on cost-of-repair shocks and claim friction, not on the product idea itself.</div></div>
+ </div>
+ <div class="sec card">
+  <h3>Representative high-engagement posts</h3>
+  <div class="grid g2" id="postGrid"></div>
+ </div>
+</section>
+
+<!-- ============ SEARCH ============ -->
+<section class="page" id="p-search">
+ <h2>Search demand — MyTelescope</h2>
+ <p class="sub">Google search universe for Apple support &amp; service, Jun 2022 – May 2026. Select topics to compare share-of-search; drill into top and rising terms per topic.</p>
+ <div class="grid g4">
+  <div class="kpi"><div class="v">787.5M</div><div class="l">Total topic searches, 48 months</div></div>
+  <div class="kpi"><div class="v">75.3%</div><div class="l">AppleCare share of search</div><div class="s">−4 pts trend · dominant but plateauing</div></div>
+  <div class="kpi"><div class="v">+87%</div><div class="l">Apple Intelligence &amp; Siri trend</div><div class="s">fastest-growing topic</div></div>
+  <div class="kpi"><div class="v">+40%</div><div class="l">iPhone repair &amp; warranty trend</div><div class="s">26.5M searches · repair era</div></div>
+ </div>
+ <div class="sec card">
+  <h3>Share of search by topic <span style="font-weight:400;font-size:12px;color:var(--fg-subtle)">— multi-select topics</span></h3>
+  <div class="chips" id="topicChips"></div>
+  <div class="chartbox tall"><canvas id="cShare"></canvas></div>
+ </div>
+ <div class="sec split">
+  <div class="card">
+   <h3>Topic league table</h3>
+   <div style="overflow-x:auto"><table id="topicTable"></table></div>
+  </div>
+  <div class="card">
+   <h3>AppleCare product-level search split</h3>
+   <div class="chartbox"><canvas id="cProduct"></canvas></div>
+   <div class="note">Within the AppleCare universe: core brand queries dominate; AppleCare Plus (11.2M) and AppleCare for iPhone (2.2M) are the biggest named products. AppleCare for iPad (+88) and Mac (+68) are the fastest risers.</div>
+  </div>
+ </div>
+ <div class="sec card">
+  <h3>Top &amp; rising search terms</h3>
+  <div style="margin-bottom:12px"><select class="select" id="termTopic"></select></div>
+  <div class="grid g2">
+   <div><h3 style="font-size:13.5px;color:var(--mw-teal-dark)">Top terms by volume</h3><table id="topTermsT"></table></div>
+   <div><h3 style="font-size:13.5px;color:var(--mw-teal-dark)">Rising terms by growth</h3><table id="risingTermsT"></table></div>
+  </div>
+  <div class="note">Rising terms show the forward agenda: iPhone 17 Pro Max attach (+235.6K%), "MacBook Neo", AppleCare One family plans, and Watch battery replacement kits (DIY intent).</div>
+ </div>
+</section>
+
+<!-- ============ OVERLAY ============ -->
+<section class="page" id="p-overlay">
+ <h2>Search × social overlay</h2>
+ <p class="sub">MyTelescope monthly search volume overlaid on Meltwater conversation volume, Jun 2025 – May 2026. Search shows intent scale; listening shows the moments that move it.</p>
+ <div class="card">
+  <h3>AppleCare: search demand vs social conversation</h3>
+  <div class="chips" id="ovChips"></div>
+  <div class="chartbox tall"><canvas id="cOverlay"></canvas></div>
+  <div class="note">Left axis: Google searches (MyTelescope). Right axis: Meltwater mentions. Toggle additional search topics to test which conversations lead demand.</div>
+ </div>
+ <div class="sec grid g3">
+  <div class="card"><h3>Launch moments move both</h3><p style="font-size:12.5px;color:var(--fg-muted)">Jul 2025 (AppleCare One) and Sep–Oct 2025 (iPhone 17) lift conversation first, search follows within the same month — social is the leading indicator at launch moments.</p></div>
+  <div class="card"><h3>Repair searches outpace repair talk</h3><p style="font-size:12.5px;color:var(--fg-muted)">iPhone repair search (+40% trend) grows steadily even in quiet conversation months — a silent-majority demand pool that never posts, best reached via SEO and support content.</p></div>
+  <div class="card"><h3>Reddit is the conversion layer</h3><p style="font-size:12.5px;color:var(--fg-muted)">"Worth it?" Reddit threads sit between search intent and purchase. Winning those threads (proof points, transparent claim costs) converts existing demand rather than creating it.</p></div>
+ </div>
+</section>
+
+<!-- ============ TRENDS ============ -->
+<section class="page" id="p-trends">
+ <h2>Trend prediction &amp; content trend framework</h2>
+ <p class="sub">Fifteen search topics scored with the reconstructed Black Swan TPV (0.3 size + 0.4 growth + 0.3 forecast), staged on the Mintel lifecycle, then placed on the CTF quadrant. <span class="modelled">modelled</span></p>
+ <div class="card">
+  <h3>Trend prediction table <span style="font-weight:400;font-size:12px;color:var(--fg-subtle)">— click headers to sort</span></h3>
+  <div style="overflow-x:auto"><table id="tpvTable"></table></div>
+ </div>
+ <div class="sec split">
+  <div class="card">
+   <h3>CTF quadrant — trend equity × brand association</h3>
+   <div class="quad"><canvas id="cQuad"></canvas></div>
+   <div class="legend"><span><i style="background:#1a7a4a"></i>Content opportunity — act now</span><span><i style="background:var(--mw-teal)"></i>Crowded space — differentiate</span><span><i style="background:#c77c00"></i>Watch list — track</span><span><i style="background:var(--danger)"></i>Sunk cost risk — evaluate exit</span></div>
+  </div>
+  <div class="card">
+   <h3>Driver &amp; megatrend mapping</h3>
+   <table style="font-size:12.5px" id="driverTable"></table>
+   <div class="note">A trend that ladders to a Mintel driver and a Euromonitor megatrend is structurally durable, not a fad.</div>
+  </div>
+ </div>
+ <div class="sec card">
+  <h3>Stickiness matrix — trends × priority subtribes <span class="modelled">modelled</span></h3>
+  <div style="overflow-x:auto"><table class="heat" id="stickyTable"></table></div>
+  <div class="note">stickiness = 0.6 × tribe fit + 0.4 × cultural momentum. Darkest cells are the activation shortlist.</div>
+ </div>
+</section>
+
+<!-- ============ TRIBES ============ -->
+<section class="page" id="p-tribes">
+ <h2>Audience &amp; tribes — Audiense · Soprism</h2>
+ <p class="sub">Two complementary audiences: the 62.2M global Meta audience interested in Apple products (Soprism, benchmark 3.18B) and 250K @AppleSupport followers on X segmented into 13 tribes (Audiense Insights).</p>
+ <div class="grid g4">
+  <div class="kpi"><div class="v">62.2M</div><div class="l">Meta audience · top 2% of benchmark</div><div class="s">60% male · 60% aged 25–44 · Instagram-first (78.1%)</div></div>
+  <div class="kpi"><div class="v">2.92x</div><div class="l">"Away from hometown" selectivity</div><div class="s">most distinctive life event → AppleCare+ upsell tribe</div></div>
+  <div class="kpi"><div class="v">4.69x</div><div class="l">Console gamers selectivity</div><div class="s">highest-selectivity behaviour in the audience</div></div>
+  <div class="kpi"><div class="v">2.45x</div><div class="l">Portuguese language selectivity</div><div class="s">Brazil is the standout growth market</div></div>
+ </div>
+
+ <div class="sec split">
+  <div class="card">
+   <h3>Tribe web-map — @AppleSupport X audience</h3>
+   <svg id="webmap" class="webmap" viewBox="0 0 760 520"></svg>
+   <div class="note">Node size = tribe size; teal intensity = modelled opportunity score (Soprism index formula). <span class="modelled">modelled</span></div>
+  </div>
+  <div class="card">
+   <h3>Meta audience profile (Soprism)</h3>
+   <div class="chartbox short"><canvas id="cAge"></canvas></div>
+   <table style="font-size:12px;margin-top:10px">
+    <tr><td>Top interests</td><td>iOS 67.5% (1.47x) · Wearables 48.7% (1.38x) · Tablets 31.3% (1.35x) · Laptops 51.9% (1.26x)</td></tr>
+    <tr><td>Top behaviours</td><td>Engaged shoppers 74.3% (2.13x) · Intl travellers 51.1% (1.69x) · iOS device access 39.4% (2.48x) · Business page admins 3.35x</td></tr>
+    <tr><td>Languages</td><td>Portuguese 2.45x · Chinese 1.85x · Spanish 1.75x · Hindi 0.81x (gap)</td></tr>
+    <tr><td>Work profile</td><td>Founder/CEO roles 2.4–4.5x over-indexed — entrepreneurial cohort</td></tr>
+   </table>
+  </div>
+ </div>
+
+ <div class="sec card">
+  <h3>Tribes ranked by modelled opportunity — mapped to AppleCare products &amp; services</h3>
+  <div class="chips" id="tribeChips"></div>
+  <div style="overflow-x:auto"><table id="tribeTable"></table></div>
+  <div class="note">Opportunity = Soprism index (Pen + Pen·Aff·3 + Cov·3 + Cov·Aff·3 + Aff) normalised 0–100; affinity proxied from Audiense influencer uniqueness. <span class="modelled">modelled</span></div>
+ </div>
+
+ <div class="sec">
+  <h3>Priority subtribes — down the rabbit hole</h3>
+  <div class="grid g3" id="subtribeGrid"></div>
+ </div>
+</section>
+
+<!-- ============ CREATORS ============ -->
+<section class="page" id="p-creators">
+ <h2>Influencers &amp; creator communities — Klear</h2>
+ <p class="sub">Who is propagating the AppleCare / Apple support conversation, clustered into four communities from live Klear discovery plus the accounts each Audiense tribe actually follows.</p>
+ <div class="chips" id="commChips"></div>
+ <div class="grid g3" id="creatorGrid"></div>
+ <div class="sec split">
+  <div class="card">
+   <h3>Tribe-native voices (Audiense affinity)</h3>
+   <table style="font-size:12.5px">
+    <tr><th>Account</th><th>Tribe</th><th>Affinity</th></tr>
+    <tr><td>Apple Hub (@theapplehub)</td><td>Apple Fans</td><td>86.6% · 234x more likely</td></tr>
+    <tr><td>MacRumors · 9to5Mac</td><td>Apple Fans</td><td>71.9% · 70.2%</td></tr>
+    <tr><td>OpenAI · Anthropic · Claude AI</td><td>Tech Innovators</td><td>80.7% · 61.3% · 50.4%</td></tr>
+    <tr><td>Virat Kohli · BCCI</td><td>Indian Cricket</td><td>63% · 55.4%</td></tr>
+    <tr><td>PlayStation · Xbox · Rockstar</td><td>Gaming Creators</td><td>71.7% · 57% · 66.8%</td></tr>
+    <tr><td>Binance · Coinbase · Solana</td><td>Crypto Trading</td><td>~80% · 64.1% · 66.3%</td></tr>
+    <tr><td>iJustine</td><td>Apple Fans</td><td>42.5%</td></tr>
+   </table>
+   <div class="note">These are the channels each tribe already trusts — seed proof points and coverage explainers here, not just in brand channels.</div>
+  </div>
+  <div class="card">
+   <h3>Addressable impressions as activations scale <span class="modelled">modelled</span></h3>
+   <div class="chartbox"><canvas id="cScale"></canvas></div>
+   <div class="note">3 posts × 0.72 dedup × 1.85 impression multiplier on real Klear reach for the top 20 profiles; creators beyond 20 use a modelled 35K-reach micro tail.</div>
+  </div>
+ </div>
+</section>
+
+<!-- ============ ACTIONS ============ -->
+<section class="page" id="p-actions">
+ <h2>Actions &amp; governance</h2>
+ <p class="sub">Six moves, sequenced by the loop. Every recommendation traces to a signal on the preceding tabs.</p>
+ <div class="grid g2">
+  <div class="card"><h3>1 · Win the "worth it?" threads on Reddit</h3><p style="font-size:12.5px;color:var(--fg-muted)">Reddit holds 52.6% of coverage conversation and 72% of negative issue mentions. Publish transparent repair-cost and claim-fee proof points that Redditors can cite; brief support teams on the five recurring surprise scenarios (90-day window, damage-before-enrolment, battery threshold, replacement paths, express-replacement fees).</p></div>
+  <div class="card"><h3>2 · Ride the AI-support wave with Tech Innovators</h3><p style="font-size:12.5px;color:var(--fg-muted)">Apple Intelligence &amp; Siri is the #1 TPV trend (86) and a content opportunity — troubleshooting demand ("why is siri not working", 375.7K) is unowned. Build AI-support explainers and seed them through the OpenAI/Anthropic-following Tech Innovators tribe.</p></div>
+  <div class="card"><h3>3 · Own repair &amp; longevity content</h3><p style="font-size:12.5px;color:var(--fg-muted)">iPhone (+40), Mac (+42 future) and Watch battery replacement are rising searches with a silent-majority demand pool. Pair SEO answer pages with repair-DIY micro creators to intercept third-party repair intent with AppleCare's genuine-parts story.</p></div>
+  <div class="card"><h3>4 · Target Globally Mobile Expats for AppleCare One + Theft &amp; Loss</h3><p style="font-size:12.5px;color:var(--fg-muted)">"Away from hometown" (2.92x) and frequent international travellers (1.69x) are the most distinctive Soprism traits — cross-border device dependence maps directly to multi-device coverage. Instagram-first placements (78.1% membership); Brazil/LatAm creative priority (Portuguese 2.45x).</p></div>
+  <div class="card"><h3>5 · Launch attach plays in India via the cricket tribe</h3><p style="font-size:12.5px;color:var(--fg-muted)">India is 12.6% of the X audience; Indian Cricket tribe is 90% India-based and rising-term data shows model-launch attach spikes. Financing-linked AppleCare+ messaging through cricket-adjacent creators at iPhone launch windows.</p></div>
+  <div class="card"><h3>6 · Convert launch fragility moments</h3><p style="font-size:12.5px;color:var(--fg-muted)">Dent/drop posts in the first weeks of each iPhone cycle are the single most fertile attach moment (rising terms: "applecare 17 pro max" +235.6K%). Time creator content and in-store attach offers to the first 30 days of each launch.</p></div>
+ </div>
+ <div class="sec">
+  <h3>Governance</h3>
+  <div class="gov">
+   <div class="g"><b>Decision support, not decision making</b>A human reviews and verifies every AI-assisted output before implementation; final calls rest with account owners.</div>
+   <div class="g"><b>No PII</b>Public creator handles and aggregated audience data only; no individual-level personal data.</div>
+   <div class="g"><b>Transparent models</b>TPV, opportunity, stickiness and scaling formulas are stated on-canvas with inputs; assumptions auditable.</div>
+   <div class="g"><b>Indicative where flagged</b>Modelled estimates (scaled creator tail, affinity proxies) carry the yellow "modelled" flag.</div>
+   <div class="g"><b>Refreshable</b>The map re-runs as search, social and tribe signals shift; treat as a living readout, not a static report.</div>
+  </div>
+ </div>
+</section>
+
+<footer>
+ <div><b>AppleCare — global intelligence dashboard</b> · Data sourced from Meltwater (listening) · MyTelescope (search) · Audiense &amp; Soprism (audience) · Klear (creators)</div>
+ <div>Methodology credits: Black Swan · Tastewise · Mintel · Euromonitor · YouGov (public approaches, reconstructed) · Generated 3 Jul 2026 · Human review required before activation</div>
+</footer>
+<script>
+const DATA = {"topics":[{"name":"AppleCare","sharePct":75.29,"vol":592967930,"trend":-4,"future":9,"tpv":52,"lifecycle":"Established"},{"name":"Apple Support","sharePct":8.1,"vol":63773900,"trend":4,"future":17,"tpv":50,"lifecycle":"Established"},{"name":"Apple Device Replacement","sharePct":6.6,"vol":52011520,"trend":14,"future":29,"tpv":55,"lifecycle":"Mainstreaming"},{"name":"iPhone Repair & Warranty","sharePct":3.36,"vol":26495270,"trend":40,"future":59,"tpv":67,"lifecycle":"Emerging"},{"name":"iPad Repair & Warranty","sharePct":1.85,"vol":14547680,"trend":10,"future":23,"tpv":49,"lifecycle":"Mainstreaming"},{"name":"Apple Watch & Accessories","sharePct":1.61,"vol":12696500,"trend":26,"future":42,"tpv":57,"lifecycle":"Mainstreaming"},{"name":"AirPods & Beats Support","sharePct":1.27,"vol":9994460,"trend":-16,"future":-5,"tpv":34,"lifecycle":"Declining"},{"name":"Apple Apps & Services","sharePct":0.64,"vol":5051590,"trend":-15,"future":-4,"tpv":33,"lifecycle":"Declining"},{"name":"Apple Intelligence & Siri","sharePct":0.4,"vol":3168870,"trend":87,"future":106,"tpv":86,"lifecycle":"Emerging"},{"name":"Mac Repair & Warranty","sharePct":0.38,"vol":2969540,"trend":23,"future":42,"tpv":52,"lifecycle":"Mainstreaming"},{"name":"Apple Subscriptions & Payments","sharePct":0.33,"vol":2591190,"trend":4,"future":15,"tpv":41,"lifecycle":"Established"},{"name":"Apple Software & Updates","sharePct":0.09,"vol":747950,"trend":-43,"future":-36,"tpv":12,"lifecycle":"Declining"},{"name":"Apple Device Issues","sharePct":0.06,"vol":486710,"trend":-41,"future":-33,"tpv":12,"lifecycle":"Declining"},{"name":"Apple Accessories & Cases","sharePct":0.0,"vol":21340,"trend":-19,"future":-10,"tpv":15,"lifecycle":"Declining"},{"name":"Apple Event & Beta Issues","sharePct":0.0,"vol":8880,"trend":-2,"future":9,"tpv":22,"lifecycle":"Established"}],"dates":["2022-06-30","2022-07-31","2022-08-31","2022-09-30","2022-10-31","2022-11-30","2022-12-31","2023-01-31","2023-02-28","2023-03-31","2023-04-30","2023-05-31","2023-06-30","2023-07-31","2023-08-31","2023-09-30","2023-10-31","2023-11-30","2023-12-31","2024-01-31","2024-02-29","2024-03-31","2024-04-30","2024-05-31","2024-06-30","2024-07-31","2024-08-31","2024-09-30","2024-10-31","2024-11-30","2024-12-31","2025-01-31","2025-02-28","2025-03-31","2025-04-30","2025-05-31","2025-06-30","2025-07-31","2025-08-31","2025-09-30","2025-10-31","2025-11-30","2025-12-31","2026-01-31","2026-02-28","2026-03-31","2026-04-30","2026-05-31"],"seriesShare":{"Apple Support":[0.08,0.08,0.08,0.07,0.07,0.07,0.07,0.08,0.08,0.08,0.08,0.09,0.09,0.08,0.09,0.08,0.07,0.07,0.08,0.08,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.07,0.09,0.09,0.08,0.09,0.09,0.08,0.09,0.09,0.09,0.08,0.08,0.06,0.08,0.06,0.07,0.09,0.08,0.08,0.09,0.09],"Apple Device Issues":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"iPhone Repair & Warranty":[0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.04,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.04,0.04,0.04,0.04,0.04,0.03,0.04,0.03,0.04,0.04,0.04,0.04,0.04,0.04],"AirPods & Beats Support":[0.01,0.01,0.02,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.02,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],"Apple Intelligence & Siri":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"Apple Accessories & Cases":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"Apple Apps & Services":[0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.02,0.01,0.01,0.01,0.01,0.0,0.01,0.0,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.0,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],"Apple Subscriptions & Payments":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"iPad Repair & Warranty":[0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.01,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.01],"Apple Watch & Accessories":[0.02,0.02,0.02,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.02,0.02,0.02,0.02,0.01,0.01,0.01,0.01,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.01,0.01,0.01,0.01,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.01,0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.02],"Mac Repair & Warranty":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.01,0.0,0.0,0.0,0.0],"Apple Device Replacement":[0.07,0.06,0.06,0.05,0.06,0.05,0.06,0.06,0.07,0.07,0.07,0.07,0.07,0.07,0.07,0.06,0.07,0.06,0.07,0.07,0.07,0.07,0.07,0.07,0.07,0.07,0.07,0.06,0.07,0.06,0.06,0.07,0.07,0.07,0.08,0.07,0.07,0.07,0.07,0.06,0.07,0.07,0.06,0.07,0.07,0.06,0.07,0.08],"Apple Event & Beta Issues":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"AppleCare":[0.76,0.76,0.76,0.8,0.78,0.8,0.79,0.75,0.76,0.75,0.75,0.74,0.75,0.75,0.74,0.78,0.76,0.78,0.76,0.74,0.74,0.74,0.72,0.73,0.74,0.74,0.74,0.78,0.75,0.76,0.76,0.73,0.73,0.73,0.72,0.72,0.72,0.73,0.74,0.8,0.76,0.78,0.76,0.73,0.74,0.75,0.73,0.74],"Apple Software & Updates":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},"seriesVol":{"Apple Support":[1211130,1228910,1238350,1234190,1224320,1216490,1221800,1252830,1049590,1216540,1170900,1250210,1242230,1243800,1272270,1452820,1287950,1334640,1374480,1384210,1298910,1323840,1332480,1358860,1330820,1354680,1356840,1347080,1654470,1691910,1493930,1439980,1295150,1333190,1326530,1331360,1286950,1392320,1377310,1409880,1426750,1196330,1387240,1551000,1161460,1403470,1381740,1421760],"Apple Device Issues":[11190,12860,13890,13860,12210,10370,10350,10710,9460,11690,15470,12520,10120,10290,10790,9460,10970,8350,9730,13730,9240,8300,12530,10590,8830,11630,9770,12890,11730,8110,7460,8840,7230,7820,7220,7850,9300,8100,8740,9840,11750,8930,8420,9950,9400,7660,8130,8430],"iPhone Repair & Warranty":[432180,472230,498910,497360,484780,477710,482030,570940,449590,461260,435180,474760,461110,513730,506100,514560,512120,494770,497570,535940,463470,463620,473810,497210,493940,561950,542500,597340,569460,537080,553400,559430,484720,578930,583600,587730,614350,698150,649190,736180,662870,592840,681610,743500,628400,762720,707000,697440],"AirPods & Beats Support":[208540,216340,229140,223030,215130,216170,207960,226900,195190,215140,189780,211080,193000,216970,201280,206190,212210,214950,212680,231310,194990,197130,190260,199470,206560,214880,204520,202380,205870,221090,225400,209460,191970,205260,200590,204360,206760,231610,215010,228490,213980,209520,232810,229450,179330,186140,173270,170910],"Apple Intelligence & Siri":[38480,38860,37360,39720,63010,46670,51490,53450,45490,49290,45240,42150,40190,40350,41930,47900,53490,52870,49650,52790,46490,50140,57110,61370,64420,68860,69640,88040,142440,120580,104220,130000,103880,99660,109220,133450,74220,65100,64000,66920,70690,63410,71620,75300,61220,60200,60320,55970],"Apple Accessories & Cases":[400,430,580,530,460,440,440,460,360,340,400,390,410,410,410,490,620,510,490,510,440,460,410,430,430,480,500,480,530,450,460,440,440,530,420,510,400,430,390,500,500,390,380,400,370,410,370,310],"Apple Apps & Services":[92010,98420,107410,100520,101110,105610,116560,115230,99220,108250,107110,102880,109340,105740,108680,99380,99730,104730,105240,114020,90850,91120,234630,86770,84930,99330,92160,86380,104760,94260,97440,133750,119080,130100,103390,96750,92340,98440,96720,110260,147720,108760,106330,94730,81800,89630,85580,92390],"Apple Subscriptions & Payments":[40450,47400,46700,46880,48380,45550,48740,49530,42050,47150,44820,60870,50330,51020,55610,63140,54100,57030,62230,62390,52100,53590,54170,55010,53610,59510,56210,51530,61450,61160,63790,71180,56560,60890,56400,79070,54840,57860,53500,55020,53210,52520,51500,47510,43030,49650,46190,55760],"iPad Repair & Warranty":[230060,235430,280350,310100,317100,323310,343070,343650,246930,276500,239760,231050,230750,244180,278520,275950,278170,322450,325480,337420,276600,277060,275070,318760,282230,281970,316600,318750,360690,420600,330640,340120,277130,297170,246250,293470,294560,299080,304840,347960,341050,417140,437510,390220,310270,315660,258430,247620],"Apple Watch & Accessories":[248250,259140,256180,266450,234060,212310,233620,243690,193550,209890,204860,227690,236350,245910,252590,254150,237910,243890,254470,257760,215540,226960,244020,257710,298420,276100,233980,246610,234970,244540,247220,260280,227530,302770,284620,338600,364880,378760,346670,353430,299930,289400,308980,321730,253130,285350,279800,301850],"Mac Repair & Warranty":[49400,52600,54220,54680,57510,52750,53270,65210,54230,59390,52210,52730,52960,58910,62930,62670,56660,57880,53180,66840,64010,62730,58030,58790,57480,59390,58740,59150,58650,55420,55020,65920,59940,66330,51950,57480,57300,67450,77490,78580,75470,57070,135540,94580,59660,71170,60240,55730],"Apple Device Replacement":[961020,915100,843580,999800,1031310,963610,1051800,1050470,945520,961010,960830,974530,955010,969320,984970,1026650,1257880,1142820,1131480,1105420,975110,1025100,980430,1077900,994070,1078480,1080540,1274810,1300660,1108620,1169790,1148970,991370,1111910,1124740,1092250,1040370,1129130,1089820,1398330,1252160,1263250,1246710,1229970,1035890,1115540,1144090,1299380],"Apple Event & Beta Issues":[160,290,310,180,90,90,70,50,50,70,70,70,250,280,300,210,150,210,120,140,180,100,110,70,510,550,410,350,260,200,120,110,110,210,100,100,410,410,370,210,110,130,110,100,110,100,90,80],"AppleCare":[10992350,11205580,11445330,14901350,13131840,14643350,14140250,12308430,10362210,10896810,10356450,10392070,10572910,10986860,11060920,14156920,13113200,14229670,13150890,12156970,10651560,10897870,10119890,10986140,11224370,11722000,11222300,15692350,14125270,14472540,14048080,11943640,10621890,11520830,10629070,10762490,10491900,12027500,11951240,18948540,14208970,14865020,14742550,12983780,10886930,13113950,11636980,12265920],"Apple Software & Updates":[15090,15830,16160,15590,18060,19960,20900,18330,14450,13190,16950,17850,19160,14870,16410,13810,14340,16020,13370,13650,10250,11220,80660,11070,12210,15310,11770,13180,19000,12200,13930,18510,15270,17940,10900,11110,9900,9140,9480,15140,25530,12060,12330,13320,9420,9040,7250,6820]},"products":[{"name":"AppleCare","vol":548183940,"pct":97.328,"trend":0},{"name":"AppleCare Plus","vol":11200860,"pct":1.989,"trend":-21},{"name":"AppleCare for iPhone","vol":2222040,"pct":0.395,"trend":25},{"name":"AppleCare Protection Plan","vol":886030,"pct":0.157,"trend":0},{"name":"AppleCare for iPad","vol":309940,"pct":0.055,"trend":88},{"name":"AppleCare for Mac","vol":200120,"pct":0.036,"trend":68},{"name":"AppleCare for Apple Watch","vol":173800,"pct":0.031,"trend":-25},{"name":"Apple device support","vol":58510,"pct":0.01,"trend":62},{"name":"Support issue queries (composite)","vol":0,"pct":0.0,"trend":0}],"tops":{"AppleCare":[["applecare airpods",64058000],["applecare support",39585000],["applecare headphones",32741000],["applecare mac",29702000],["applecare usa",28961000],["applecare laptop",25170000],["applecare airpods pro",22989000],["applecare india",22894000],["applecare uk",20268000],["applecare login",18887000]],"Apple Support":[["apple support",39585000],["apple support hotline number",7772500],["tech apple support",1189800],["apple support help number",796200],["apple account recovery",726800],["apple id locked",674600],["apple account disabled",674600],["apple id support",534000],["apple id apple support",534000],["apple apple id support",534000]],"iPhone Repair & Warranty":[["iphone battery replacement",6014500],["apple genius bar appointment",3405000],["genius bar appointment",3300500],["iphone warranty check",2499500],["cost of iphone battery replacement",1350600],["iphone battery replacement near me",1201100],["apple iphone battery replacement",1021000],["apple authorized service provider",716600],["6s iphone battery replacement",612600],["how much iphone battery replacement",558900]],"iPad Repair & Warranty":[["ipad applecare",8575000],["battery ipad replacement",1438200],["ipad battery replacement",1438200],["ipad applecare coverage",714300],["ipad battery replacement near me",231100],["cost of ipad battery replacement",231000],["ipad replacement battery cost",231000],["apple ipad battery replacement",195800],["ipad warranty check",141400],["ipad replacement screen near me",133400]],"Mac Repair & Warranty":[["mac repair",1178900],["mac battery replacement",873100],["mac warranty check",243400],["apple mac battery replacement",222600],["mac battery replacement near me",53500],["how much is a mac battery replacement",48290],["power mac battery replacement",41090],["apple mac warranty check",40520],["cost of mac battery replacement",37920],["mac battery replacement price",32200]],"Apple Device Issues":[["apple repair status",177500],["apple service status",162000],["apple replacement device",41970],["apple service status check",12810],["apple service outage",11270],["apple software issue",9350],["apple replacement device lawsuit",7740],["is apple replacement device new",7690],["apple battery draining fast",7530],["apple replacement device warranty",7140]],"Apple Subscriptions & Payments":[["apple pay not working",735400],["apple account disabled",674600],["apple account disabled for security reasons",119700],["why is apple pay not working",104700],["why is my apple account disabled",98420],["apple pay not working on iphone",92370],["apple pay not working hold near reader",70060],["how to fix apple pay not working",39890],["apple pay not working today",39210],["why my apple pay not working",33680]],"Apple Intelligence & Siri":[["siri not working",823900],["hey siri not working",631700],["why is siri not working",375700],["why is my siri not working",257500],["iphone siri not working",175100],["siri not working on iphone 16",66130],["is siri not working",61230],["why is siri not working on my iphone",50370],["why is my hey siri not working",45330],["siri not working anymore",28830]],"Apple Watch & Accessories":[["apple watch battery replacement",1974500],["apple watch replacement battery",1974500],["apple watch repair",1542400],["apple watch repair screen",1109000],["apple watch screen repair",1109000],["apple watch repair near me",774500],["apple watch replacement bands",255500],["apple watch battery replacement cost",211300],["apple watch screen repair near me",190100],["apple watch repair screen near me",190100]],"AirPods & Beats Support":[["one airpods not working",1470500],["applecare for beats",1195600],["left airpods not working",1000800],["right airpods not working",754600],["airpods battery replacement",592700],["applecare for airpods",563400],["airpods repair",460200],["airpods not working",374200],["why is one of my airpods not working",332700],["why is my left airpods not working",263200]],"Apple Software & Updates":[["app store ios not working",421800],["move to ios not working",92600],["ios update problems",36420],["reinstall macos not working",21460],["new ios update problems",20850],["latest ios update problems",14270],["youtube ios not working",7230],["apple ios update problems",7000],["scarlet ios not working",6200],["iphone ios update problems",5250]],"Apple Apps & Services":[["apple pay support",517200],["icloud storage full problem",507100],["google app store not working",475100],["app store not working",421800],["icloud storage full",405200],["apple pay support number",187800],["why is my app store not working",187800],["apple music support",182700],["app store not working iphone",107500],["why is app store not working",106300]],"Apple Device Replacement":[["applecare coverage checker",14366000],["apple warranty check",12263000],["applecare refund",10251000],["applecare coverage",7043000],["applecare refund policy",1752900],["applecare plan",1238200],["check applecare coverage",884100],["ipad applecare coverage",714300],["applecare cost",442900],["apple warranty check by imei",385500]],"Apple Event & Beta Issues":[["apple beta support",5650],["ios beta battery drain",1340],["ios beta issues",980],["report ios beta issues",450],["apple beta support program",240],["apple beta support number",220]],"Apple Accessories & Cases":[["apple case replacement",16270],["apple case replacement policy",2540],["apple silicone case replacement",2530]]},"rising":{"AppleCare":[["applecare 17 pro max",165000],["applecare 17 pro",110000],["applecare macbook neo",4400],["applecare 16 pro",60500],["applecare+ for iphone",301000],["applecare airpods 4",450000],["applecare and warranty",1300],["applecare airpods pro 3",550000],["applecare+ renewal",590],["applecare+ for macbook",18100]],"Apple Support":[["apple support chat free",2900],["apple id locked ipad",18100],["apple support passcode",9900],["apple support guide",720],["apple support password",6600],["iforgot apple account recovery",480],["apple support team phone number",720],["apple support airpod replacement",3600],["apple support desk phone number",210],["does apple support israel",2400]],"iPhone Repair & Warranty":[["future tech apple authorized service provider",1300],["apple authorized service provider for battery replacement",590],["switch apple authorized service provider soho kuching",590],["apple store iphone battery replacement",22200],["genius bar appointment near me",720],["power mac center iphone battery replacement",140],["third party iphone battery replacement",140],["apple iphone battery replacement cost",5400],["apple iphone battery replacement",90500],["timpson iphone battery replacement cost",390]],"iPad Repair & Warranty":[["apple store ipad battery replacement",1300],["how much is ipad battery replacement philippines",210],["apple ipad battery replacement",12100],["7th gen ipad battery replacement",50],["applecare for ipad 9th generation",140],["ipad battery replacement kit",140],["apple ipad battery replacement cost",320],["ipad battery replacement service",170],["applecare for ipad",2900],["applecare for ipad air",90]],"Mac Repair & Warranty":[["mac battery replacement kit",880],["mac battery replacement service",260],["ifixit mac battery replacement",260],["mac warranty check india",70],["apple mac battery replacement",9900],["how much does a mac battery replacement cost",210],["apple mac battery replacement cost",590],["mac warranty check uk",20],["mac battery replacement price",390],["how much is a mac battery replacement",880]],"Apple Device Issues":[["check apple repair status online",50],["track apple repair status",110],["how to track apple repair status",30],["check my apple repair status",110],["apple repair status website",50],["apple service outage",260],["how to check apple repair status",110],["apple service status page",50],["apple replacement device warranty",170],["apple repair status update",20]],"Apple Subscriptions & Payments":[["apple pay not working with double click",590],["why is my apple pay not working on my phone",590],["hold near reader apple pay not working",590],["why is apple pay not working on my iphone",720],["dhgate apple pay not working",70],["is apple pay not working",210],["apple pay not working on phone",260],["why isn't my apple pay not working",140],["double tap apple pay not working",320],["card verification apple pay not working",40]],"Apple Intelligence & Siri":[["type to siri not working",320],["why is siri not working on my phone",320],["siri not working on my iphone",140],["siri not working when i say hey siri",70],["why is hey siri not working on my iphone",170],["siri not working in carplay",210],["why is siri not working on my iphone",2400],["siri not working on my phone",50],["siri not working on phone",50],["siri not working on carplay",320]],"Apple Watch & Accessories":[["ifixit apple watch battery replacement",2400],["apple watch battery replacement kit",4400],["apple watch replacement box",1000],["ifixit apple watch screen repair",880],["apple watch battery replacement service",2900],["apple watch repair estimate",170],["apple watch repair and service",170],["apple watch repair shop",3600],["apple watch repair service",1900],["apple support apple watch repair",110]],"AirPods & Beats Support":[["apple support beats repair",260],["applecare for beats headphones",480],["applecare for airpods max",2900],["airpods repair shop chennai",110],["apple airpods repair",12100],["why one side of airpods not working",70],["applecare for airpods",22200],["airpods repair chennai",50],["applecare for airpods pro",3600],["airpods repair and service",50]],"Apple Software & Updates":[["latest ios update problems",390],["new ios update problems",480],["whatsapp ios not working",20],["discord ios not working",30],["move to ios not working for whatsapp",40],["ios update problems",480],["apple ios update problems",110],["26.2 ios update problems",0],["apple new ios update problems",10],["adguard ios not working",20]],"Apple Apps & Services":[["how to contact apple pay support",1600],["icloud storage full how to free up space",140],["apple pay support customer service number",110],["amazon app store not working on fire tablet",110],["phone number for apple pay support",210],["apple pay support chat",260],["does apple pay support capital one",70],["apple pay support refund",70],["vewd app store not working",70],["icloud storage full but iphone storage not",70]],"Apple Device Replacement":[["is applecare coverage worth it",90],["apple warranty check nz",50],["applecare theft and loss countries",50],["applecare coverage",368000],["how to buy applecare plan",1000],["what is applecare coverage for iphone",90],["how to change applecare plan",90],["which applecare plan is best",40],["how to add applecare coverage",40],["how much is applecare coverage",260]],"Apple Event & Beta Issues":[["apple beta support number",0],["apple beta support program",10],["report ios beta issues",10],["ios beta issues",10],["apple beta support",40],["ios beta battery drain",10]],"Apple Accessories & Cases":[["apple case replacement",260],["apple case replacement policy",20],["apple silicone case replacement",30]]},"listening":{"monthly":{"dates":["2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05"],"counts":[4960,10445,6358,9889,10146,8351,6368,7105,5986,8144,6303,6546]},"total":90601,"platforms":[["Reddit",26035],["Online news",8389],["X / Twitter",6096],["Broadcast TV",3140],["Forums / message boards",1631],["Broadcast radio",1097],["RED (Xiaohongshu)",920],["YouTube",726],["Reviews",342],["Podcasts",322],["Bluesky",314],["Blogs",169],["Other",512]],"platformNote":"Platform mix computed on strict AppleCare+coverage boolean (49.5K docs); monthly series on wider AppleCare coverage universe (90.6K).","sentiment":{"neutral":27479,"negative":9069,"positive":8609,"unknown":94},"negConcentration":{"total":5368,"reddit":3865,"pct":72.0}},"tribes":[{"name":"Japanese Design","size":92469,"pct":37.0,"aff":0.35,"products":"AppleCare+ iPhone \u00b7 mainstream retention","opportunity":100},{"name":"Space Ventures","size":36671,"pct":14.7,"aff":0.45,"products":"AppleCare One \u00b7 multi-device early adopters","opportunity":39},{"name":"Tech Innovators","size":14658,"pct":5.9,"aff":0.85,"products":"AppleCare One \u00b7 Mac repair \u00b7 developer trust","opportunity":25},{"name":"Apple Fans","size":10913,"pct":4.4,"aff":0.95,"products":"Every product \u00b7 organic amplification","opportunity":22},{"name":"Indian Cricket","size":12913,"pct":5.2,"aff":0.8,"products":"AppleCare+ iPhone \u00b7 financing-linked attach, India","opportunity":21},{"name":"Gaming Creators","size":12478,"pct":5.0,"aff":0.7,"products":"AppleCare+ accidental damage \u00b7 gaming devices","opportunity":16},{"name":"Crypto Trading","size":10267,"pct":4.1,"aff":0.65,"products":"Theft & Loss \u00b7 security-led positioning","opportunity":11},{"name":"Global News Tech","size":11578,"pct":4.6,"aff":0.5,"products":"AppleCare One \u00b7 premium household plans","opportunity":8},{"name":"Sports Streaming","size":10760,"pct":4.3,"aff":0.55,"products":"Apple Watch coverage \u00b7 AppleCare for Watch","opportunity":8},{"name":"Football Clubs","size":10189,"pct":4.1,"aff":0.45,"products":"AppleCare+ iPhone \u00b7 Africa growth markets","opportunity":4},{"name":"American Conservatism","size":10628,"pct":4.3,"aff":0.4,"products":"Theft & Loss \u00b7 utility-led messaging","opportunity":3},{"name":"Japanese Convenience","size":4458,"pct":1.8,"aff":0.6,"products":"AppleCare One \u00b7 Japan premium market","opportunity":1},{"name":"Chinese News","size":5859,"pct":2.3,"aff":0.5,"products":"AppleCare+ iPhone \u00b7 Greater China service","opportunity":0}],"sticky":{"AppleCare core":{"Apple Fans":0.68,"Tech Innovators":0.5,"Indian Cricket":0.5,"Gaming Creators":0.44,"Crypto Trading":0.38,"Globally Mobile Expats":0.56},"AI support (Siri / Apple Intelligence)":{"Apple Fans":0.88,"Tech Innovators":1.0,"Indian Cricket":0.7,"Gaming Creators":0.7,"Crypto Trading":0.7,"Globally Mobile Expats":0.64},"iPhone repair & longevity":{"Apple Fans":0.78,"Tech Innovators":0.72,"Indian Cricket":0.78,"Gaming Creators":0.66,"Crypto Trading":0.54,"Globally Mobile Expats":0.72},"AppleCare One bundling":{"Apple Fans":0.88,"Tech Innovators":0.82,"Indian Cricket":0.64,"Gaming Creators":0.7,"Crypto Trading":0.64,"Globally Mobile Expats":0.88},"Theft & loss protection":{"Apple Fans":0.54,"Tech Innovators":0.48,"Indian Cricket":0.66,"Gaming Creators":0.54,"Crypto Trading":0.78,"Globally Mobile Expats":0.84},"Watch & wearables coverage":{"Apple Fans":0.58,"Tech Innovators":0.46,"Indian Cricket":0.58,"Gaming Creators":0.52,"Crypto Trading":0.4,"Globally Mobile Expats":0.58}},"scaling":{"points":[5,20,50,100],"impressions":[97135707,115642801,119838601,126831601]}};
+
+/* ---------- curated content ---------- */
+const POSTS=[
+ {p:"X · @gregjoz (Apple)",t:"AppleCare One launch",x:"“Introducing AppleCare One: unlimited repairs, support, theft and loss protection… one simple plan.” — 1.5K eng · 151.7K reach",u:"https://twitter.com/gregjoz/statuses/1948036283764461743",d:"Jul 2025"},
+ {p:"X · @BrandonButch",t:"AppleCare One value framing",x:"“AppleCare on up to 3 products for $20/month… add more devices at $6/month.” — 1.4K eng · 107K views",u:"https://twitter.com/BrandonButch/statuses/1948020954640068760",d:"Jul 2025"},
+ {p:"Reddit · r/iphone",t:"The attach-timing confession",x:"“Every time I get a new phone I go raw as long as I can, with AppleCare+, knowing when I break it I'll repair and get a case…” — 619 eng · 4.5M reach",u:"https://www.reddit.com/r/iphone/comments/1o2ehyp",d:"Oct 2025"},
+ {p:"Reddit · r/iPhone17Pro",t:"Launch fragility → attach debate",x:"“Dented iPhone 17 on day 1… AppleCare+ present. Does accidental damage apply here?” — 423 eng",u:"https://www.reddit.com/r/iPhone17Pro/comments/1tjmbrr/",d:"May 2026"},
+ {p:"Reddit · r/macbookpro",t:"Claim friction meets delight",x:"“Apple replaces my 2019 15\" with an M5… grateful, but why warranty a device you won't repair?” — 256 eng · 325.7K reach",u:"https://www.reddit.com/r/macbookpro/comments/1ovk9b6",d:"Nov 2025"},
+ {p:"X · @VerdeSelvans",t:"Channel mis-selling risk (Indonesia)",x:"“Resellers say iPhones don't come with a warranty so you must buy AppleCare+… they mislead customers to hit targets.” — 1.7K eng",u:"https://twitter.com/VerdeSelvans/statuses/2032369567272747250",d:"Mar 2026"},
+ {p:"X · @Sankew06",t:"Bundling sentiment",x:"“Random thought: Apple should sell iPhones with AppleCare+ coverage by default.” — 1.9K eng · 69.8K views",u:"https://twitter.com/Sankew06/statuses/2013832665984590094",d:"Jan 2026"},
+ {p:"X · @Telefonia_MX",t:"Theft & Loss lands in Mexico",x:"Full AppleCare+ robo y pérdida explainer thread — 518 eng; strong LatAm appetite for coverage detail.",u:"https://twitter.com/Telefonia_MX/statuses/1990897223878521123",d:"Nov 2025"}];
+
+const COMMUNITIES={
+ "Mega tech reviewers":{desc:"Verdict-setters at launch. Their 'worth it?' takes cascade into every tribe.",list:[
+  {n:"Marques Brownlee",h:"@mkbhd",f:12762813,e:null,inf:99,c:"US"},
+  {n:"Lewis Hilsenteger",h:"@unboxtherapy",f:7016837,e:0.3,inf:98,c:"US"},
+  {n:"Filip Koroy",h:"@everythingapplepro",f:1041308,e:10.6,inf:96,c:"US"},
+  {n:"Dave Lee",h:"@dave2d",f:561872,e:2.8,inf:89,c:"CA"},
+  {n:"Michael Kukielka",h:"@detroitborg",f:297952,e:4.5,inf:88,c:"US"}]},
+ "Apple ecosystem specialists":{desc:"Explain coverage, repairs and ecosystem value in depth — the trust layer for Apple Fans.",list:[
+  {n:"Snazzy Labs",h:"@snazzyq",f:313531,e:null,inf:85,c:"US"},
+  {n:"Rene Ritchie",h:"@reneritchie",f:191566,e:null,inf:88,c:"CA"},
+  {n:"STEVEN",h:"@stevenlathoud",f:202252,e:null,inf:85,c:"FR"},
+  {n:"ThisIsE",h:"@thisisetv",f:114156,e:null,inf:77,c:"BG"},
+  {n:"Tailosive Tech",h:"@tailosivetech",f:57812,e:null,inf:76,c:"US"}]},
+ "Tips & everyday-user creators":{desc:"Reach mainstream owners (and the under-indexed female audience) with practical value content.",list:[
+  {n:"MILAD ALEMI",h:"@letsdodizz",f:2346886,e:0.1,inf:85,c:"US"},
+  {n:"Veleztips",h:"@veleztips_",f:1140391,e:0.6,inf:82,c:"LatAm"},
+  {n:"Jennifer Dove",h:"@techgirljen",f:529130,e:0.4,inf:85,c:"US"},
+  {n:"Mauricio Ramos",h:"@maudricio",f:420859,e:0.5,inf:85,c:"US"},
+  {n:"ようすけ (Yosuke)",h:"@yosuke_kochi",f:218576,e:0.3,inf:79,c:"JP"},
+  {n:"Tech by Thangam",h:"@computerkadhalan",f:103354,e:1.2,inf:83,c:"IN"}]},
+ "Repair & DIY micro-fixers":{desc:"Own street-level repair intent — the exact moment users choose AppleCare vs third-party repair.",list:[
+  {n:"Bilal Akash",h:"@bilal_akash",f:26591,e:0.5,inf:60,c:"IN"},
+  {n:"Hussain Fix",h:"@hussainfix",f:6234,e:null,inf:79,c:"IN"},
+  {n:"Abhi Mobile India",h:"@unique__boy_____09",f:6462,e:null,inf:43,c:"IN"},
+  {n:"rk mobile repairing",h:"@rk_mobile_repairing_solution",f:1989,e:null,inf:63,c:"IN"},
+  {n:"WEVERTON TECNOLOGIAS",h:"@weverton_silvsilva",f:607,e:null,inf:46,c:"BR"}]}};
+
+const SUBTRIBES=[
+ {t:"Tech Innovators",s:"AI-support evaluators",size:"14.7K on X",o:"Own 'Siri not working' + Apple Intelligence support content; developer-grade transparency.",prod:"AppleCare One · Mac coverage"},
+ {t:"Globally Mobile Expats",s:"Cross-border device dependents",size:"~10.1M on Meta (16.2%)",o:"2.92x 'away from hometown' — theft & loss + multi-device is their language.",prod:"Theft & Loss · AppleCare One"},
+ {t:"Indian Cricket",s:"Launch-window attachers",size:"12.9K on X · 90% India",o:"Financing-linked attach at iPhone launches through cricket-adjacent creators.",prod:"AppleCare+ for iPhone"},
+ {t:"Apple Fans",s:"Organic amplifiers",size:"10.9K on X",o:"Seed AppleCare One explainers via Apple Hub / MacRumors ecosystem (86.6% affinity).",prod:"Every product"},
+ {t:"Gaming Creators",s:"Device-abuse realists",size:"12.5K on X",o:"Accidental-damage stories fit controller-throwing culture; M-chip gaming angle.",prod:"AppleCare+ accidental damage"},
+ {t:"Crypto Trading",s:"Security maximalists",size:"10.3K on X",o:"Position coverage as asset protection: secure enclave, Find My, replacement guarantees.",prod:"Theft & Loss"}];
+
+const DRIVERS=[
+ ["AI support (Siri / Apple Intelligence)","Technology","Connected Consumers","Durable — ladders to AI ubiquity"],
+ ["iPhone repair & longevity","Value","Sustainable / Ethical Living","Durable — right-to-repair era"],
+ ["AppleCare One bundling","Value","Premiumisation (subscriptions)","Durable — subscription consolidation"],
+ ["Theft & loss protection","Wellbeing (security)","Connected Consumers","Durable — mobility megatrend"],
+ ["Watch & wearables coverage","Wellbeing","Healthy Living","Durable — health tracking"],
+ ["Software & updates content","Technology","—","Fad-prone — demand declining (−36)"]];
+
+const QUAD=[
+ {n:"AI support",x:25,y:86,q:"opp"},
+ {n:"iPhone repair & longevity",x:45,y:74,q:"opp"},
+ {n:"AppleCare One bundling",x:55,y:70,q:"crowd"},
+ {n:"Theft & loss",x:60,y:58,q:"crowd"},
+ {n:"Watch coverage",x:40,y:52,q:"watch"},
+ {n:"Mac repair",x:35,y:55,q:"opp"},
+ {n:"AppleCare core brand",x:88,y:62,q:"crowd"},
+ {n:"Accessories & cases",x:30,y:18,q:"watch"},
+ {n:"Software & updates",x:65,y:15,q:"sunk"}];
+
+const CONV=[
+ ["AI support",1,1,1,1,.5,1],
+ ["iPhone repair & longevity",1,1,1,1,1,.5],
+ ["AppleCare One bundling",1,.5,1,1,.5,1],
+ ["Theft & loss",.5,.5,1,1,.5,1],
+ ["Watch coverage",.5,1,.5,1,.5,.5],
+ ["Software & updates",0,0,0,.5,0,0]];
+
+/* ---------- helpers ---------- */
+const TEAL='#28BBBB',TEALD='#1C7070',T1='#A3DFDF',T2='#C0EBEB',T3='#E1EFF0',ORANGE='#FF6221',PURPLE='#B627A1',YELLOW='#FFCC01',DANGER='#C0392B',GREEN='#1a7a4a',AMBER='#c77c00';
+const PALETTE=[TEAL,TEALD,PURPLE,ORANGE,YELLOW,'#5FA0E0','#9970D8','#D844A0','#3FCFD0','#8A9494','#1a7a4a','#c77c00','#C0392B','#555','#A3DFDF'];
+Chart.defaults.font.family="'Poppins',sans-serif";Chart.defaults.color='#555';Chart.defaults.font.size=11;
+const fmt=n=>n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n;
+const monthLabels=DATA.dates.map(d=>d.slice(0,7));
+
+/* ---------- tabs ---------- */
+document.getElementById('tabs').addEventListener('click',e=>{
+ const b=e.target.closest('.tab-btn');if(!b)return;
+ document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active');document.getElementById('p-'+b.dataset.t).classList.add('active');
+ window.dispatchEvent(new Event('resize'));
+});
+
+/* ---------- overview: convergence ---------- */
+(function(){
+ const lens=['Trend','TPV','Velocity','Driver fit','Megatrend','Demand','Tribe'];
+ let h='<tr>'+lens.map(l=>'<th>'+l+'</th>').join('')+'</tr>';
+ CONV.forEach(r=>{h+='<tr><td style="font-weight:600">'+r[0]+'</td>'+r.slice(1).map(v=>'<td><i style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(v===1?TEAL:v===.5?T1:'#eee')+'"></i></td>').join('')+'</tr>';});
+ document.getElementById('convTable').innerHTML=h;
+})();
+
+/* ---------- listening ---------- */
+new Chart(document.getElementById('cListenVol'),{type:'bar',data:{labels:DATA.listening.monthly.dates,datasets:[{data:DATA.listening.monthly.counts,backgroundColor:DATA.listening.monthly.counts.map(v=>v>=9800?TEALD:TEAL),borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:'#EEF3F3'}},x:{grid:{display:false}}},maintainAspectRatio:false}});
+new Chart(document.getElementById('cPlatform'),{type:'bar',indexAxis:'y',data:{labels:DATA.listening.platforms.map(p=>p[0]),datasets:[{data:DATA.listening.platforms.map(p=>p[1]),backgroundColor:DATA.listening.platforms.map((p,i)=>i===0?TEALD:TEAL),borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#EEF3F3'}},y:{grid:{display:false}}},maintainAspectRatio:false}});
+new Chart(document.getElementById('cSent'),{type:'doughnut',data:{labels:['Neutral','Negative','Positive'],datasets:[{data:[DATA.listening.sentiment.neutral,DATA.listening.sentiment.negative,DATA.listening.sentiment.positive],backgroundColor:[T2,DANGER,TEAL],borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'right'}},cutout:'62%',maintainAspectRatio:false}});
+document.getElementById('postGrid').innerHTML=POSTS.map(p=>'<div class="postcard"><div class="meta">'+p.p+' · '+p.d+'</div><div class="t">'+p.t+'</div><p>'+p.x+'</p><a href="'+p.u+'" target="_blank">View post →</a></div>').join('');
+
+/* ---------- search: share chart with multiselect ---------- */
+const topTopics=DATA.topics.map(t=>t.name);
+let activeTopics=new Set(['AppleCare','Apple Support','iPhone Repair & Warranty','Apple Intelligence & Siri','Apple Device Replacement']);
+const chipsEl=document.getElementById('topicChips');
+topTopics.forEach(n=>{const b=document.createElement('button');b.className='chip'+(activeTopics.has(n)?' on':'');b.textContent=n;b.onclick=()=>{activeTopics.has(n)?activeTopics.delete(n):activeTopics.add(n);b.classList.toggle('on');drawShare();};chipsEl.appendChild(b);});
+let shareChart;
+function drawShare(){
+ const ds=[...activeTopics].map((n,i)=>({label:n,data:DATA.seriesShare[n]||[],borderColor:PALETTE[topTopics.indexOf(n)%PALETTE.length],backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.3}));
+ if(shareChart)shareChart.destroy();
+ shareChart=new Chart(document.getElementById('cShare'),{type:'line',data:{labels:monthLabels,datasets:ds},options:{plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'share of search %'},grid:{color:'#EEF3F3'}},x:{ticks:{maxTicksLimit:12},grid:{display:false}}},maintainAspectRatio:false}});
+}
+drawShare();
+
+/* topic table */
+(function(){
+ let rows=DATA.topics;
+ const el=document.getElementById('topicTable');
+ function render(){
+  let h='<tr><th data-k="name">Topic</th><th data-k="vol">Volume 48m</th><th data-k="sharePct">Share %</th><th data-k="trend">Trend</th><th data-k="future">Future idx</th></tr>';
+  rows.forEach(t=>{h+='<tr><td style="font-weight:600">'+t.name+'</td><td>'+fmt(t.vol)+'</td><td>'+t.sharePct+'%</td><td class="'+(t.trend>=0?'up':'down')+'">'+(t.trend>=0?'+':'')+t.trend+'%</td><td class="'+(t.future>=0?'up':'down')+'">'+(t.future>=0?'+':'')+t.future+'%</td></tr>';});
+  el.innerHTML=h;
+  el.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;rows=[...rows].sort((a,b)=>typeof a[k]==='string'?a[k].localeCompare(b[k]):b[k]-a[k]);render();});
+ }
+ render();
+})();
+
+/* product donut */
+const prods=DATA.products.filter(p=>p.vol>0);
+new Chart(document.getElementById('cProduct'),{type:'doughnut',data:{labels:prods.map(p=>p.name),datasets:[{data:prods.map(p=>p.vol),backgroundColor:PALETTE,borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'right',labels:{boxWidth:12}}},cutout:'55%',maintainAspectRatio:false}});
+
+/* terms */
+const termSel=document.getElementById('termTopic');
+Object.keys(DATA.tops).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;termSel.appendChild(o);});
+function drawTerms(){
+ const k=termSel.value;
+ const t=DATA.tops[k]||[],r=DATA.rising[k]||[];
+ const maxT=Math.max(...t.map(x=>x[1]),1);
+ document.getElementById('topTermsT').innerHTML='<tr><th>Term</th><th>Volume</th><th></th></tr>'+t.map(x=>'<tr><td>'+x[0]+'</td><td>'+fmt(x[1])+'</td><td><div class="bar"><i style="width:'+(100*x[1]/maxT)+'%"></i></div></td></tr>').join('');
+ document.getElementById('risingTermsT').innerHTML='<tr><th>Term</th><th>Growth</th></tr>'+r.map(x=>'<tr><td>'+x[0]+'</td><td class="up">+'+fmt(x[1])+'%</td></tr>').join('');
+}
+termSel.onchange=drawTerms;termSel.value='AppleCare';drawTerms();
+
+/* ---------- overlay ---------- */
+const last12=DATA.dates.slice(-12).map(d=>d.slice(0,7));
+let ovTopics=new Set(['AppleCare']);
+const ovAvail=['AppleCare','Apple Support','iPhone Repair & Warranty','Apple Intelligence & Siri','Apple Watch & Accessories','Mac Repair & Warranty'];
+const ovChips=document.getElementById('ovChips');
+ovAvail.forEach(n=>{const b=document.createElement('button');b.className='chip'+(ovTopics.has(n)?' on':'');b.textContent=n+' (search)';b.onclick=()=>{ovTopics.has(n)?ovTopics.delete(n):ovTopics.add(n);b.classList.toggle('on');drawOverlay();};ovChips.appendChild(b);});
+let ovChart;
+function drawOverlay(){
+ const ds=[...ovTopics].map((n,i)=>({label:n+' — search',data:(DATA.seriesVol[n]||[]).slice(-12),yAxisID:'y',borderColor:PALETTE[ovAvail.indexOf(n)%PALETTE.length],backgroundColor:'transparent',borderWidth:2.5,pointRadius:3,tension:.3}));
+ ds.push({label:'AppleCare coverage — social mentions',data:DATA.listening.monthly.counts,yAxisID:'y1',borderColor:PURPLE,borderDash:[6,4],backgroundColor:'rgba(182,39,161,.08)',fill:true,borderWidth:2.5,pointRadius:3,tension:.3});
+ if(ovChart)ovChart.destroy();
+ ovChart=new Chart(document.getElementById('cOverlay'),{type:'line',data:{labels:last12,datasets:ds},options:{plugins:{legend:{position:'bottom'}},scales:{y:{position:'left',title:{display:true,text:'Google searches / month'},grid:{color:'#EEF3F3'}},y1:{position:'right',title:{display:true,text:'Meltwater mentions / month'},grid:{drawOnChartArea:false}},x:{grid:{display:false}}},maintainAspectRatio:false}});
+}
+drawOverlay();
+
+/* ---------- trends ---------- */
+(function(){
+ let rows=[...DATA.topics].sort((a,b)=>b.tpv-a.tpv);
+ const el=document.getElementById('tpvTable');
+ function render(){
+  let h='<tr><th data-k="name">Trend / topic</th><th data-k="tpv">TPV</th><th></th><th data-k="lifecycle">Lifecycle</th><th data-k="trend">Velocity</th><th data-k="future">Forecast</th><th data-k="sharePct">Relevance (SOS %)</th></tr>';
+  rows.forEach(t=>{h+='<tr><td style="font-weight:600">'+t.name+'</td><td style="font-weight:700;color:'+TEALD+'">'+t.tpv+'</td><td><div class="bar"><i style="width:'+t.tpv+'%"></i></div></td><td><span class="pill '+t.lifecycle.toLowerCase()+'">'+t.lifecycle+'</span></td><td class="'+(t.trend>=0?'up':'down')+'">'+(t.trend>=0?'+':'')+t.trend+'%</td><td class="'+(t.future>=0?'up':'down')+'">'+(t.future>=0?'+':'')+t.future+'%</td><td>'+t.sharePct+'%</td></tr>';});
+  el.innerHTML=h;
+  el.querySelectorAll('th').forEach(th=>{if(!th.dataset.k)return;th.onclick=()=>{const k=th.dataset.k;rows=[...rows].sort((a,b)=>typeof a[k]==='string'?a[k].localeCompare(b[k]):b[k]-a[k]);render();};});
+ }
+ render();
+})();
+
+/* quadrant */
+const qc={opp:GREEN,crowd:TEAL,watch:AMBER,sunk:DANGER};
+new Chart(document.getElementById('cQuad'),{type:'scatter',data:{datasets:QUAD.map(p=>({label:p.n,data:[{x:p.x,y:p.y}],backgroundColor:qc[p.q],pointRadius:9,pointHoverRadius:11}))},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label}}},scales:{x:{min:0,max:100,title:{display:true,text:'brand association →'},grid:{color:ctx=>ctx.tick.value===50?'#B9C6C6':'#EEF3F3'}},y:{min:0,max:100,title:{display:true,text:'trend equity (TEI) →'},grid:{color:ctx=>ctx.tick.value===50?'#B9C6C6':'#EEF3F3'}}},maintainAspectRatio:false}});
+// point labels
+Chart.register({id:'qlbl',afterDatasetsDraw(c){if(c.canvas.id!=='cQuad')return;const{ctx}=c;ctx.save();ctx.font='600 10px Poppins';ctx.fillStyle='#333';c.data.datasets.forEach((d,i)=>{const m=c.getDatasetMeta(i).data[0];ctx.fillText(d.label,m.x+10,m.y+3);});ctx.restore();}});
+
+/* driver table */
+document.getElementById('driverTable').innerHTML='<tr><th>Trend</th><th>Mintel driver</th><th>Euromonitor megatrend</th><th>Durability</th></tr>'+DRIVERS.map(d=>'<tr><td style="font-weight:600">'+d[0]+'</td><td><span class="tag">'+d[1]+'</span></td><td><span class="tag">'+d[2]+'</span></td><td style="font-size:12px;color:var(--fg-muted)">'+d[3]+'</td></tr>').join('');
+
+/* stickiness heatmap */
+(function(){
+ const subs=Object.keys(Object.values(DATA.sticky)[0]);
+ let h='<tr><th>Trend</th>'+subs.map(s=>'<th style="cursor:default">'+s+'</th>').join('')+'</tr>';
+ Object.entries(DATA.sticky).forEach(([tr,row])=>{
+  h+='<tr><td style="font-weight:600;text-align:left">'+tr+'</td>'+subs.map(s=>{const v=row[s];const a=Math.min(1,(v-0.3)/0.7);return '<td style="background:rgba(40,187,187,'+(a*0.9).toFixed(2)+');color:'+(a>0.55?'#fff':'#1A1A1A')+'">'+v.toFixed(2)+'</td>';}).join('')+'</tr>';});
+ document.getElementById('stickyTable').innerHTML=h;
+})();
+
+/* ---------- tribes ---------- */
+new Chart(document.getElementById('cAge'),{type:'bar',data:{labels:['18–24','25–34','35–44','45–54','55–64'],datasets:[{label:'Audience %',data:[13.0,36.6,23.8,13.2,7.3],backgroundColor:TEAL,borderRadius:4},{label:'Benchmark %',data:[24.2,33.6,18.7,11.0,6.8],backgroundColor:T2,borderRadius:4}]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{grid:{color:'#EEF3F3'}},x:{grid:{display:false}}},maintainAspectRatio:false}});
+
+/* webmap SVG */
+(function(){
+ const svg=document.getElementById('webmap');
+ const cx=380,cy=260;
+ const tribes=DATA.tribes;
+ const maxS=Math.max(...tribes.map(t=>t.size));
+ let inner='<circle cx="'+cx+'" cy="'+cy+'" r="46" fill="#1C7070"/><text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">@AppleSupport</text><text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" fill="#C0EBEB" font-size="10">250K · 13 tribes</text>';
+ tribes.forEach((t,i)=>{
+  const ang=(i/tribes.length)*2*Math.PI-Math.PI/2;
+  const R=185;const x=cx+R*Math.cos(ang),y=cy+R*Math.sin(ang);
+  const r=10+26*Math.sqrt(t.size/maxS);
+  const op=0.25+0.75*(t.opportunity/100);
+  inner+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="#D7E1E1" stroke-width="1.5"/>';
+  inner+='<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="rgba(40,187,187,'+op.toFixed(2)+')" stroke="#1C7070" stroke-width="1"><title>'+t.name+' · '+t.pct+'% · opportunity '+t.opportunity+'</title></circle>';
+  const ty=y+r+12>510?y-r-6:y+r+12;
+  inner+='<text x="'+x+'" y="'+ty+'" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1A1A1A">'+t.name+'</text>';
+ });
+ svg.innerHTML=inner;
+})();
+
+/* tribe table with product filter chips */
+(function(){
+ const prods=['All','iPhone','One / bundle','Theft & Loss','Mac','Watch','Amplification'];
+ let active='All';
+ const chipEl=document.getElementById('tribeChips');
+ prods.forEach(p=>{const b=document.createElement('button');b.className='chip'+(p==='All'?' on':'');b.textContent=p;b.onclick=()=>{active=p;chipEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');render();};chipEl.appendChild(b);});
+ function match(t){if(active==='All')return true;
+  const m={'iPhone':'iPhone','One / bundle':'One','Theft & Loss':'Theft','Mac':'Mac','Watch':'Watch','Amplification':'amplif'}[active];
+  return t.products.toLowerCase().includes(m.toLowerCase());}
+ function render(){
+  let h='<tr><th>Tribe</th><th>Size (X)</th><th>% of audience</th><th>Opportunity</th><th></th><th>AppleCare mapping</th></tr>';
+  DATA.tribes.filter(match).forEach(t=>{h+='<tr><td style="font-weight:600">'+t.name+'</td><td>'+fmt(t.size)+'</td><td>'+t.pct+'%</td><td style="font-weight:700;color:'+TEALD+'">'+t.opportunity+'</td><td><div class="bar"><i style="width:'+t.opportunity+'%"></i></div></td><td style="font-size:12px;color:var(--fg-muted)">'+t.products+'</td></tr>';});
+  document.getElementById('tribeTable').innerHTML=h;
+ }
+ render();
+})();
+
+/* subtribe cards */
+document.getElementById('subtribeGrid').innerHTML=SUBTRIBES.map(s=>'<div class="card"><div style="font-size:11px;color:var(--fg-subtle)">'+s.t+'</div><h3 style="margin:2px 0 6px">'+s.s+'</h3><div style="font-size:12px;color:var(--mw-teal-dark);font-weight:600;margin-bottom:6px">'+s.size+'</div><p style="font-size:12.5px;color:var(--fg-muted);margin:0 0 8px">'+s.o+'</p><span class="tag">'+s.prod+'</span></div>').join('');
+
+/* ---------- creators ---------- */
+(function(){
+ let active='All';
+ const names=['All',...Object.keys(COMMUNITIES)];
+ const chipEl=document.getElementById('commChips');
+ names.forEach(p=>{const b=document.createElement('button');b.className='chip'+(p==='All'?' on':'');b.textContent=p;b.onclick=()=>{active=p;chipEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');render();};chipEl.appendChild(b);});
+ function render(){
+  const keys=active==='All'?Object.keys(COMMUNITIES):[active];
+  let h='';
+  keys.forEach(k=>{const c=COMMUNITIES[k];
+   c.list.forEach(cr=>{h+='<div class="creator"><div class="n">'+cr.n+'</div><div class="h">'+cr.h+' · '+cr.c+'</div><div class="stats"><span><b>'+fmt(cr.f)+'</b>followers</span><span><b>'+(cr.e!=null?cr.e+'%':'—')+'</b>eng. rate</span><span><b>'+cr.inf+'</b>influence</span></div><span class="tag">'+k+'</span></div>';});});
+  document.getElementById('creatorGrid').innerHTML=h;
+ }
+ render();
+})();
+
+new Chart(document.getElementById('cScale'),{type:'line',data:{labels:DATA.scaling.points.map(p=>'Top '+p),datasets:[{label:'Projected impressions',data:DATA.scaling.impressions,borderColor:TEAL,backgroundColor:'rgba(40,187,187,.14)',fill:true,borderWidth:2.5,pointRadius:5,pointBackgroundColor:TEALD,tension:.3}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)+' impressions'}}},scales:{y:{ticks:{callback:v=>fmt(v)},grid:{color:'#EEF3F3'}},x:{grid:{display:false}}},maintainAspectRatio:false}});
+</script>
+</body>
+</html>

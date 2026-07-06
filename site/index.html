@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AppleCare Intelligence — peace of mind, measured</title>
+<style>
+:root{
+ --green:#61BB46;--yellow:#FDB827;--orange:#F5821F;--red:#E03A3E;--purple:#963D97;--blue:#009DDC;
+ --ink:#1d1d1f;--muted:#6e6e73;--bg:#fff;--soft:#f5f5f7;--link:#0066CC;
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5}
+nav{background:rgba(22,22,23,.94);backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,6vw);height:48px;position:sticky;top:0;z-index:99}
+nav .l{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+nav a{color:#f5f5f7;text-decoration:none;font-size:12px;opacity:.85}
+nav a:hover{opacity:1}
+.applelogo{height:22px;width:auto;display:block}
+.hero{text-align:center;padding:96px 24px 80px;background:linear-gradient(180deg,#fbfbfd 0%,#fff 100%)}
+.hero .biglogo{height:88px;margin:0 auto 28px;display:block}
+.hero h1{font-size:clamp(40px,6vw,64px);font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.hero h1 span{background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red),var(--purple),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:clamp(18px,2.4vw,24px);color:var(--muted);max-width:720px;margin:16px auto 0;font-weight:400}
+.cta{margin-top:32px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-block;border-radius:980px;padding:12px 28px;font-size:16px;text-decoration:none;font-weight:500}
+.btn.p{background:#0071e3;color:#fff}
+.btn.p:hover{background:#0077ed}
+.btn.s{color:var(--link);border:1px solid var(--link)}
+.stats{display:flex;justify-content:center;gap:clamp(24px,6vw,80px);flex-wrap:wrap;padding:36px 24px;background:#fff;border-top:1px solid #e8e8ed;border-bottom:1px solid #e8e8ed}
+.stats div{text-align:center}
+.stats b{display:block;font-size:30px;font-weight:700;letter-spacing:-.01em}
+.stats span{font-size:13px;color:var(--muted)}
+.rainbowbar{height:5px;background:linear-gradient(90deg,var(--green) 0 16.6%,var(--yellow) 0 33.3%,var(--orange) 0 50%,var(--red) 0 66.6%,var(--purple) 0 83.3%,var(--blue) 0 100%)}
+section{padding:80px max(22px,6vw)}
+.sechead{text-align:center;margin-bottom:48px}
+.sechead h2{font-size:clamp(30px,4.4vw,44px);font-weight:700;letter-spacing:-.015em}
+.sechead p{color:var(--muted);font-size:18px;margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;max-width:1240px;margin:0 auto}
+.prod{background:var(--soft);border-radius:24px;padding:38px 32px;text-align:center;transition:transform .25s ease}
+.prod:hover{transform:translateY(-4px)}
+.prod .icon{font-size:52px;line-height:1;margin-bottom:14px}
+.prod h3{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.prod .tag{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;display:block}
+.prod p{color:var(--muted);font-size:14px;margin-top:8px}
+.prod .num{font-size:34px;font-weight:700;margin-top:16px;letter-spacing:-.01em}
+.prod .lbl{font-size:12px;color:var(--muted)}
+.dark{background:#000;color:#f5f5f7}
+.dark .sechead p{color:#a1a1a6}
+.rise{background:#161617;border-radius:18px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.rise b{font-size:16px;font-weight:600}
+.rise span{font-size:13px;color:#a1a1a6;display:block}
+.rise .pct{font-size:20px;font-weight:700;color:var(--green);white-space:nowrap}
+.darkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;max-width:1240px;margin:0 auto}
+.dash{background:linear-gradient(135deg,#f5f5f7,#e8f4f4);text-align:center}
+.dash h2{font-size:clamp(28px,4vw,40px);font-weight:700}
+.dash p{color:var(--muted);max-width:640px;margin:12px auto 28px}
+footer{background:var(--soft);color:var(--muted);font-size:12px;padding:28px max(22px,6vw);text-align:center;border-top:1px solid #e8e8ed}
+footer .rb{width:120px;height:4px;margin:0 auto 16px;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red),var(--purple),var(--blue))}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<linearGradient id="rainbow" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="0" stop-color="#61BB46"/><stop offset=".166" stop-color="#61BB46"/>
+ <stop offset=".166" stop-color="#FDB827"/><stop offset=".333" stop-color="#FDB827"/>
+ <stop offset=".333" stop-color="#F5821F"/><stop offset=".5" stop-color="#F5821F"/>
+ <stop offset=".5" stop-color="#E03A3E"/><stop offset=".666" stop-color="#E03A3E"/>
+ <stop offset=".666" stop-color="#963D97"/><stop offset=".833" stop-color="#963D97"/>
+ <stop offset=".833" stop-color="#009DDC"/><stop offset="1" stop-color="#009DDC"/>
+</linearGradient>
+<symbol id="apple" viewBox="0 0 814 1000"><path d="M788 341c-6 4-108 62-108 190 0 148 130 200 134 202-1 3-21 72-69 142-43 62-88 124-156 124s-86-40-164-40c-76 0-104 41-166 41s-106-57-156-127C46 792 0 668 0 550c0-189 123-289 244-289 64 0 118 42 158 42 39 0 99-45 172-45 28 0 128 3 194 83zM554 172c31-37 53-88 53-139 0-7-1-14-2-20-51 2-111 34-147 76-28 32-55 83-55 135 0 8 1 16 2 18 3 1 8 2 13 2 45 0 102-30 136-72z"/></symbol>
+</defs></svg>
+
+<nav>
+ <div class="l"><svg class="applelogo" viewBox="0 0 814 1000" fill="#f5f5f7"><use href="#apple"/></svg> AppleCare Intelligence</div>
+ <div style="display:flex;gap:22px"><a href="#products">Products</a><a href="#rising">Rising demand</a><a href="dashboard.html">Dashboard</a></div>
+</nav>
+
+<div class="hero">
+ <svg class="biglogo" viewBox="0 0 814 1000" fill="url(#rainbow)"><use href="#apple"/></svg>
+ <h1>AppleCare.<br><span>Peace of mind, measured.</span></h1>
+ <p>Four years of global search demand, twelve months of social conversation, 62 million audience profiles and the creators who move them — one intelligence view.</p>
+ <div class="cta">
+  <a class="btn p" href="dashboard.html">Open the intelligence dashboard</a>
+  <a class="btn s" href="#products">Explore top products</a>
+ </div>
+</div>
+<div class="rainbowbar"></div>
+
+<div class="stats">
+ <div><b>592.9M</b><span>AppleCare searches · 48 months</span></div>
+ <div><b>75.3%</b><span>share of Apple support search</span></div>
+ <div><b>90.6K</b><span>social mentions · 12 months</span></div>
+ <div><b>62.2M</b><span>global Meta audience</span></div>
+ <div><b>13</b><span>audience tribes</span></div>
+</div>
+
+<section id="products">
+ <div class="sechead"><h2>Top products people protect.</h2><p>Ranked by AppleCare search demand, worldwide, June 2022 – May 2026.</p></div>
+ <div class="grid">
+  <div class="prod"><div class="icon">🎧</div><span class="tag" style="color:var(--green)">No. 1 by search</span><h3>AirPods</h3><p>“applecare airpods” is the single biggest AppleCare query in the world — accessories lead the coverage conversation.</p><div class="num">64.1M</div><div class="lbl">searches · applecare airpods</div></div>
+  <div class="prod"><div class="icon">📱</div><span class="tag" style="color:var(--red)">Fastest riser</span><h3>iPhone</h3><p>Repair &amp; warranty demand up 40% — and every new launch spikes attach intent within 30 days.</p><div class="num">26.5M</div><div class="lbl">iPhone repair &amp; warranty searches · +40%</div></div>
+  <div class="prod"><div class="icon">💻</div><span class="tag" style="color:var(--blue)">Loyal base</span><h3>Mac</h3><p>“applecare mac” at 29.7M with laptop coverage close behind — Mac repair trend index up 42%.</p><div class="num">29.7M</div><div class="lbl">searches · applecare mac</div></div>
+  <div class="prod"><div class="icon">⌚️</div><span class="tag" style="color:var(--purple)">Wearables wave</span><h3>Apple Watch</h3><p>Watch &amp; accessories trend up 42%; battery-replacement queries signal a longevity mindset.</p><div class="num">+42%</div><div class="lbl">watch &amp; accessories trend index</div></div>
+  <div class="prod"><div class="icon">🖥</div><span class="tag" style="color:var(--orange)">Multi-device era</span><h3>AppleCare One</h3><p>One plan, three devices, $20 a month — the strongest positive conversation spike of the year.</p><div class="num">Jul 2025</div><div class="lbl">launch · peak social month (10.4K mentions)</div></div>
+  <div class="prod"><div class="icon">🗣</div><span class="tag" style="color:var(--yellow)">AI support</span><h3>Siri &amp; Apple Intelligence</h3><p>The fastest-growing support topic (+87% trend, +106% future index) — troubleshooting is the new front door.</p><div class="num">+106%</div><div class="lbl">future trend index</div></div>
+ </div>
+</section>
+
+<section class="dark" id="rising">
+ <div class="sechead"><h2>Rising demand.</h2><p>The search terms growing fastest right now.</p></div>
+ <div class="darkgrid">
+  <div class="rise"><div><b>applecare 17 pro max</b><span>launch-window attach intent</span></div><div class="pct">+235.6K%</div></div>
+  <div class="rise"><div><b>applecare 17 pro</b><span>new model coverage</span></div><div class="pct">+99.9K%</div></div>
+  <div class="rise"><div><b>applecare macbook neo</b><span>next-gen Mac interest</span></div><div class="pct">+43.9K%</div></div>
+  <div class="rise"><div><b>applecare+ for iphone</b><span>core attach query</span></div><div class="pct">+30K%</div></div>
+  <div class="rise"><div><b>apple watch battery replacement kit</b><span>DIY longevity signal</span></div><div class="pct">+21.9K%</div></div>
+  <div class="rise"><div><b>applecare one for family</b><span>household bundling</span></div><div class="pct">+1.1K%</div></div>
+ </div>
+</section>
+
+<section class="dash">
+ <h2>The full picture lives in the dashboard.</h2>
+ <p>Search × social overlay, trend prediction (TPV), CTF quadrant, 13 audience tribes with opportunity scores, and four Klear creator communities — in one interactive view.</p>
+ <a class="btn p" href="dashboard.html">Open AppleCare intelligence dashboard</a>
+</section>
+
+<footer>
+ <div class="rb"></div>
+ AppleCare Intelligence · Data: Meltwater · MyTelescope · Audiense · Soprism · Klear · Prepared 6 Jul 2026 · Internal demo — human review required before activation. Apple, AppleCare and the Apple logo are trademarks of Apple Inc.; used here for internal illustrative purposes only.
+</footer>
+</body>
+</html>
